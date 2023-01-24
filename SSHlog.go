@@ -121,7 +121,7 @@ func main() {
 	ssh.Handle(func(s ssh.Session) {
 
 		if !silentFlag {
-			printLog([]string{"CLIENT CONNECTED", "     Address:", s.RemoteAddr().String()}, []string{"yellow", "white", "white"})
+			printLog([]string{"CLIENT CONNECTED", "     Address:", s.RemoteAddr().String()}, []string{"red", "white", "magenta"})
 		}
 
 		// set start command as bash
@@ -202,7 +202,7 @@ func main() {
 		}
 		// client disconnect
 		if !silentFlag {
-			printLog([]string{"CLIENT DISCONNECTED", "  Address:", s.RemoteAddr().String()}, []string{"yellow", "white", "white"})
+			printLog([]string{"CLIENT DISCONNECTED", "  Address:", s.RemoteAddr().String()}, []string{"red", "white", "magenta"})
 		}
 
 	})
@@ -223,7 +223,7 @@ func main() {
 	passwordAuth := ssh.PasswordAuth(func(ctx ssh.Context, pass string) bool {
 
 		if !silentFlag {
-			printLog([]string{"LOGIN ATTEMPT", "        Address:", ctx.RemoteAddr().String(), "  Client:", ctx.ClientVersion(), "  Username:", ctx.User(), "  Password:", pass}, []string{"red", "white", "magenta", "white", "white", "white", "magenta", "white", "magenta"})
+			printLog([]string{"LOGIN ATTEMPT", "        Address:", ctx.RemoteAddr().String(), "  Client:", ctx.ClientVersion(), "  Username:", ctx.User(), "  Password:", pass}, []string{"yellow", "white", "magenta", "white", "white", "white", "magenta", "white", "magenta"})
 		}
 
 		if loginFlag {
