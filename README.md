@@ -1,7 +1,5 @@
 # SSHlog
-SSH server that captures login credentials and logs client actions.  
-A private key can be specified at runtime so this program appears to be the true SSH sever.  
-Separate log files are created for every client in the directory the program is run.  
+![example](example.png)
 
 ## Build
 ```bash
