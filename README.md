@@ -6,14 +6,29 @@
 git clone https://github.com/Zilog-Z80/SSHlog.git
 cd SSHlog
 go build SSHlog.go
+./SSHlog
 ```
 
 ## Change SSH Server Port
+Standard configuration:  
 ```bash
 nano /etc/ssh/sshd_config
 # Uncomment the '#Port 22' line and change to desired port
-systemctl reload ssh  
-# This change may not survive reboot if the SSH server is socket activated
+systemctl restart ssh  
+```
+
+Socket activated configuration (ex. Ubuntu 22):
+```bash
+mkdir -p /etc/systemd/system/ssh.socket.d
+
+cat >/etc/systemd/system/ssh.socket.d/listen.conf <<EOF
+[Socket]
+ListenStream=
+ListenStream=1234
+EOF
+
+systemctl daemon-reload
+systemctl restart ssh
 ```
 
 ## SSHlog Usage
