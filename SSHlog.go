@@ -231,8 +231,13 @@ func main() {
 		} else {
 			// check if password is valid
 			hash := findHash(ctx.User())
-			new_hash := C.GoString(C.crypt(C.CString(pass), C.CString(hash)))
-			return hash == new_hash
+			// case where username is not in /etc/shadow
+			if hash == "" {
+				return false
+			} else {
+				new_hash := C.GoString(C.crypt(C.CString(pass), C.CString(hash)))
+				return hash == new_hash
+			}
 		}
 	})
 

@@ -1,0 +1,12 @@
+/SSHlog
+
+*
+!*/
+
+# whitelist
+!.gitignore
+!.example.png
+!go.mod
+!go.sum
+!README.md
+!SSHlog.go

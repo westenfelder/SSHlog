@@ -47,3 +47,7 @@ Usage of ./SSHlog:
   -s	silent mode
   -v	log to stdout (NOT RECOMMENDED)
 ```
+
+## TODO
+- Fix log output spacing
+- Make program covert
