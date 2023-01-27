@@ -124,8 +124,11 @@ func main() {
 			printLog([]string{"CLIENT CONNECTED", "     Address:", s.RemoteAddr().String()}, []string{"red", "white", "magenta"})
 		}
 
-		// set start command as bash
-		cmd := exec.Command("bash")
+		// start bash in users home directory
+		cmdString := "cd $HOME; bash"
+        cmd := exec.Command("bash", "-c", cmdString)
+
+		// cmd := exec.Command("bash")
 
 		// Configure pseudoterminal
 		_, winCh, _ := s.Pty()
@@ -134,7 +137,7 @@ func main() {
 		f, errBash := pty.Start(cmd)
 		if errBash != nil {
 			if !silentFlag {
-				printLog([]string{"FAILED TO START BASH", errBash.Error()}, []string{"red", "white"})
+				printLog([]string{"FAILED TO START BASH  ", errBash.Error()}, []string{"red", "white"})
 			}
 		}
 
@@ -198,7 +201,12 @@ func main() {
 		s.Write([]byte{byte('\n')})
 		// write message to client
 		if messageFlag != "" {
-			s.Write([]byte(messageFlag + "\n"))
+			_, messageErr := s.Write([]byte(messageFlag + "\n"))
+			if messageErr != nil {
+				if !silentFlag {
+					printLog([]string{"FAILED TO WRITE EXIT MESSAGE", messageErr.Error()}, []string{"red", "white"})
+				}
+			}
 		}
 		// client disconnect
 		if !silentFlag {

@@ -50,4 +50,6 @@ Usage of ./SSHlog:
 
 ## TODO
 - Fix log output spacing
-- Make program covert
+- encrypt log files with password (command line arg)?
+- add instructions for switching port on cent os
+- add instructions to kill sshd
