@@ -10,7 +10,10 @@ go build SSHlog.go
 ```
 
 ## Kill True SSH Server
-`killall sshd` - kill all ssh processes  
+```bash
+# kill all ssh processes  
+killall sshd
+```
 
 ## Change SSH Server Port
 Ubuntu 20:  
