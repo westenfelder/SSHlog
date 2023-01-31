@@ -9,15 +9,18 @@ go build SSHlog.go
 ./SSHlog
 ```
 
+## Kill True SSH Server
+`killall sshd` - kill all ssh processes  
+
 ## Change SSH Server Port
-Standard configuration:  
+Ubuntu 20:  
 ```bash
 nano /etc/ssh/sshd_config
 # Uncomment the '#Port 22' line and change to desired port
 systemctl restart ssh  
 ```
 
-Socket activated configuration (ex. Ubuntu 22):
+Ubuntu 22:
 ```bash
 mkdir -p /etc/systemd/system/ssh.socket.d
 
@@ -29,6 +32,17 @@ EOF
 
 systemctl daemon-reload
 systemctl restart ssh
+```
+
+CentOS:
+```bash
+vi /etc/ssh/sshd_config
+# Uncomment the '#Port 22' line and change to desired port
+yum install policycoreutils
+semanage port -a -t ssh_port_t -p tcp <port>
+semanage port -m -t ssh_port_t -p tcp <port>
+systemctl restart sshd
+sudo firewall-cmd --add-port=<port>/tcp --permanent
 ```
 
 ## SSHlog Usage
@@ -47,9 +61,3 @@ Usage of ./SSHlog:
   -s	silent mode
   -v	log to stdout (NOT RECOMMENDED)
 ```
-
-## TODO
-- Fix log output spacing
-- encrypt log files with password (command line arg)?
-- add instructions for switching port on cent os
-- add instructions to kill sshd
