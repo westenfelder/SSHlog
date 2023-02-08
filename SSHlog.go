@@ -24,12 +24,14 @@ import (
 	"github.com/gliderlabs/ssh"
 )
 
+// command line argument variables
 var silentFlag bool
 var keyFlag string
 var loginFlag bool
 var portFlag int
 var verboseFlag bool
 var messageFlag string
+
 
 // Adjust window size
 func setWinsize(f *os.File, w, h int) {
@@ -63,6 +65,14 @@ func findHash(username string) string {
 // Logging function with color printing
 func printLog(stringList []string, colorList []string) {
 
+	// Open or create server log file
+	var serverLogFile *os.File
+	var serverLogFileName string = ".ServerLog"
+	serverLogFile, openErr := os.OpenFile(serverLogFileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if openErr != nil {
+		serverLogFile, _ = os.Create(serverLogFileName)
+	}
+	
 	green := color.New(color.FgGreen)
 	red := color.New(color.FgRed)
 	yellow := color.New(color.FgYellow)
@@ -73,31 +83,46 @@ func printLog(stringList []string, colorList []string) {
 	if len(colorList) != len(stringList) {
 		return
 	} else {
-		blue.Print(time.Now().Format(time.RFC1123), "  ")
+		time := time.Now().Format(time.RFC1123)
+		if !silentFlag {
+			blue.Print(time, "\t")
+		}
+		serverLogFile.WriteString(time + "\t")
 
 		for i := 0; i < len(stringList); i++ {
-			if colorList[i] == "red" {
+			// write to server log file
+			serverLogFile.WriteString(stringList[i] + " ")
+
+			// print to stdout with color
+			if colorList[i] == "red" && !silentFlag {
 				red.Print(stringList[i], " ")
 			}
-			if colorList[i] == "green" {
+			if colorList[i] == "green" && !silentFlag {
 				green.Print(stringList[i], " ")
 			}
-			if colorList[i] == "yellow" {
+			if colorList[i] == "yellow" && !silentFlag {
 				yellow.Print(stringList[i], " ")
 			}
-			if colorList[i] == "white" {
+			if colorList[i] == "white" && !silentFlag {
 				white.Print(stringList[i], " ")
 			}
-			if colorList[i] == "blue" {
+			if colorList[i] == "blue" && !silentFlag {
 				blue.Print(stringList[i], " ")
 			}
-			if colorList[i] == "magenta" {
+			if colorList[i] == "magenta" && !silentFlag {
 				magenta.Print(stringList[i], " ")
 			}
 		}
 
-		fmt.Println()
+		// print newline
+		if !silentFlag {
+			fmt.Println()
+		}
+		serverLogFile.WriteString("\n")
 	}
+
+	// Close server log file
+	serverLogFile.Close()
 }
 
 // Read file character by character to buffer
@@ -120,15 +145,11 @@ func main() {
 
 	ssh.Handle(func(s ssh.Session) {
 
-		if !silentFlag {
-			printLog([]string{"CLIENT CONNECTED", "     Address:", s.RemoteAddr().String()}, []string{"red", "white", "magenta"})
-		}
+		printLog([]string{"CLIENT CONNECTED\t", "Address:", s.RemoteAddr().String()}, []string{"red", "white", "magenta"})
 
 		// start bash in users home directory
 		cmdString := "cd $HOME; bash"
         cmd := exec.Command("bash", "-c", cmdString)
-
-		// cmd := exec.Command("bash")
 
 		// Configure pseudoterminal
 		_, winCh, _ := s.Pty()
@@ -136,9 +157,7 @@ func main() {
 		// run start command
 		f, errBash := pty.Start(cmd)
 		if errBash != nil {
-			if !silentFlag {
-				printLog([]string{"FAILED TO START BASH  ", errBash.Error()}, []string{"red", "white"})
-			}
+			printLog([]string{"FAILED TO START BASH\t", errBash.Error()}, []string{"red", "white"})
 		}
 
 		//Adjust window size
@@ -156,16 +175,12 @@ func main() {
 		// stdout
 		go func() {
 			// create log file
-			logFileName := "." + strings.TrimSpace(time.Now().Format(time.RFC3339)) + ":" + s.RemoteAddr().String()
+			logFileName := ".ClientLog:" + strings.TrimSpace(time.Now().Format(time.RFC3339)) + ":" + s.RemoteAddr().String()
 			logFile, err := os.Create(logFileName)
 			if err == nil {
-				if !silentFlag {
-					printLog([]string{"CREATED LOG FILE", "     Filename:", logFileName}, []string{"green", "white", "white"})
-				}
+				printLog([]string{"CREATED LOG FILE\t", "Filename:", logFileName}, []string{"green", "white", "white"})
 			} else {
-				if !silentFlag {
-					printLog([]string{"LOG FILE CREATION FAILED", err.Error()}, []string{"red", "white"})
-				}
+				printLog([]string{"LOG FILE CREATION FAILED\t", err.Error()}, []string{"red", "white"})
 			}
 			
 
@@ -177,9 +192,7 @@ func main() {
 				// log output
 				_, writeErr := logFile.Write(buffer.Bytes())
 				if writeErr != nil {
-					if !silentFlag{
-						printLog([]string{"FAILED TO WRITE LOG FILE", writeErr.Error()}, []string{"red", "white"})
-					}
+					printLog([]string{"FAILED TO WRITE LOG FILE\t", writeErr.Error()}, []string{"red", "white"})
 				}
 				if verboseFlag {
 					fmt.Print(buffer.String())
@@ -189,9 +202,7 @@ func main() {
 			}
 			closeErr := logFile.Close()
 			if closeErr != nil {
-				if !silentFlag {
-					printLog([]string{"FAILED TO CLOSE LOG FILE", closeErr.Error()}, []string{"red", "white"})
-				}
+				printLog([]string{"FAILED TO CLOSE LOG FILE\t", closeErr.Error()}, []string{"red", "white"})
 			}
 		}()
 
@@ -203,19 +214,17 @@ func main() {
 		if messageFlag != "" {
 			_, messageErr := s.Write([]byte(messageFlag + "\n"))
 			if messageErr != nil {
-				if !silentFlag {
-					printLog([]string{"FAILED TO WRITE EXIT MESSAGE", messageErr.Error()}, []string{"red", "white"})
-				}
+				printLog([]string{"FAILED TO WRITE EXIT MESSAGE\t", messageErr.Error()}, []string{"red", "white"})
 			}
 		}
 		// client disconnect
-		if !silentFlag {
-			printLog([]string{"CLIENT DISCONNECTED", "  Address:", s.RemoteAddr().String()}, []string{"red", "white", "magenta"})
-		}
+		printLog([]string{"CLIENT DISCONNECTED\t", "Address:", s.RemoteAddr().String()}, []string{"red", "white", "magenta"})
 
 	})
 
 	// START OF MAIN ===============================================================
+
+	// Command line arguments
 	flag.BoolVar(&silentFlag, "s", false, "silent mode")
 	flag.StringVar(&keyFlag, "k", "/etc/ssh/ssh_host_ed25519_key", "server private key")
 	flag.BoolVar(&loginFlag, "l", false, "prevent client login")
@@ -230,9 +239,7 @@ func main() {
 	// enable password login
 	passwordAuth := ssh.PasswordAuth(func(ctx ssh.Context, pass string) bool {
 
-		if !silentFlag {
-			printLog([]string{"LOGIN ATTEMPT", "        Address:", ctx.RemoteAddr().String(), "  Client:", ctx.ClientVersion(), "  Username:", ctx.User(), "  Password:", pass}, []string{"yellow", "white", "magenta", "white", "white", "white", "magenta", "white", "magenta"})
-		}
+		printLog([]string{"LOGIN ATTEMPT\t\t", "Address:", ctx.RemoteAddr().String(), "  Client:", ctx.ClientVersion(), "  Username:", ctx.User(), "  Password:", pass}, []string{"yellow", "white", "magenta", "white", "white", "white", "magenta", "white", "magenta"})
 
 		if loginFlag {
 			return false
@@ -249,16 +256,13 @@ func main() {
 		}
 	})
 
-	if !silentFlag {
-		printLog([]string{"STARTING SSHLOG"}, []string{"green"})
-	}
+	printLog([]string{"STARTING SSHLOG"}, []string{"green"})
+	printLog([]string{"CREATED LOG FILE\t", "Filename: .ServerLog"}, []string{"green", "white"})
 
 	// start server
 	startErr := ssh.ListenAndServe(":"+strconv.Itoa(portFlag), nil, hostKeyFile, passwordAuth)
 	if startErr != nil {
-		if !silentFlag {
-			printLog([]string{"FAILED TO START SSHLOG ", startErr.Error()}, []string{"red", "white"})
-		}
+		printLog([]string{"FAILED TO START SSHLOG\t", startErr.Error()}, []string{"red", "white"})
 	}
 
 }
