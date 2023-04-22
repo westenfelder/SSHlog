@@ -225,12 +225,12 @@ func main() {
 	// START OF MAIN ===============================================================
 
 	// Command line arguments
-	flag.BoolVar(&silentFlag, "s", false, "silent mode")
+	flag.BoolVar(&silentFlag, "s", false, "silent mode (default FALSE)")
 	flag.StringVar(&keyFlag, "k", "/etc/ssh/ssh_host_ed25519_key", "server private key")
-	flag.BoolVar(&loginFlag, "l", false, "prevent client login")
+	flag.BoolVar(&loginFlag, "l", false, "allow clients to login and spawn a shell (default FALSE)")
 	flag.IntVar(&portFlag, "p", 22, "port")
-	flag.BoolVar(&verboseFlag, "v", false, "log to stdout (NOT RECOMMENDED)")
-	flag.StringVar(&messageFlag, "m", "", "send message to client on exit")
+	flag.BoolVar(&verboseFlag, "v", false, "log to stdout NOT RECOMMENDED (default FALSE)")
+	flag.StringVar(&messageFlag, "m", "", "send message to client on exit (default NONE)")
 	flag.Parse()
 
 	// use server's private key
@@ -242,8 +242,6 @@ func main() {
 		printLog([]string{"LOGIN ATTEMPT\t\t", "Address:", ctx.RemoteAddr().String(), "  Client:", ctx.ClientVersion(), "  Username:", ctx.User(), "  Password:", pass}, []string{"yellow", "white", "magenta", "white", "white", "white", "magenta", "white", "magenta"})
 
 		if loginFlag {
-			return false
-		} else {
 			// check if password is valid
 			hash := findHash(ctx.User())
 			// case where username is not in /etc/shadow
@@ -253,6 +251,8 @@ func main() {
 				new_hash := C.GoString(C.crypt(C.CString(pass), C.CString(hash)))
 				return hash == new_hash
 			}
+		} else {
+			return false
 		}
 	})
 
