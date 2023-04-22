@@ -7,4 +7,5 @@
 !go.mod
 !go.sum
 !README.md
+!SSHlog-mini.go
 !SSHlog.go

@@ -1,12 +1,17 @@
 # SSHlog
 ![example](example.png)
 
-## Build
+## Standard Build
 ```bash
 git clone https://github.com/Zilog-Z80/SSHlog.git
 cd SSHlog
 go build SSHlog.go
 ./SSHlog
+```
+## Static Build
+```bash
+# statically link c libraries
+go build -ldflags "-linkmode 'external' -extldflags '-static'" SSHlog.go
 ```
 
 ## Kill True SSH Server
